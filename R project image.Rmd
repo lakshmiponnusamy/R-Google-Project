@@ -1,0 +1,180 @@
+---
+title: "R Project"
+author: "lakshmi"
+date: '2022-03-28'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r }
+setwd("c:/Users/india/documents/Google Project")
+Dec_2020 <- read_csv("202011-divvy-tripdata.csv")
+Jan_2021 <- read_csv("202012-divvy-tripdata.csv")
+Feb_2021 <- read_csv("202101-divvy-tripdata.csv")
+Mar_2021 <- read_csv("202102-divvy-tripdata.csv")
+Apr_2021 <- read_csv("202103-divvy-tripdata.csv")
+May_2021 <- read_csv("202104-divvy-tripdata.csv")
+Jun_2021 <- read_csv("202105-divvy-tripdata.csv")
+Jul_2021 <- read_csv("202106-divvy-tripdata.csv")
+ Aug_2021 <- read_csv("202107-divvy-tripdata.csv")
+ Sep_2021 <- read_csv("202108-divvy-tripdata.csv")
+  Oct_2021 <- read_csv("202109-divvy-tripdata.csv")
+  Nov_2021 <- read_csv("202110-divvy-tripdata.csv")
+  
+  Dec_2020 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                   end_station_id = as.character(end_station_id))
+ Jan_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                    end_station_id = as.character(end_station_id))
+ Feb_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                    end_station_id = as.character(end_station_id))
+ Mar_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                    end_station_id = as.character(end_station_id))
+ Apr_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                    end_station_id = as.character(end_station_id))
+ May_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                   end_station_id = as.character(end_station_id))
+ Jun_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                   end_station_id = as.character(end_station_id))
+ Jul_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                    end_station_id = as.character(end_station_id))
+ Aug_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                   end_station_id = as.character(end_station_id))
+ Sep_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                    end_station_id = as.character(end_station_id))
+ Oct_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                   end_station_id = as.character(end_station_id))
+ Nov_2021 <- mutate(Dec_2020, start_station_id = as.character(start_station_id),
+                    end_station_id = as.character(end_station_id))
+```
+  
+  
+```{r}
+Winter <- bind_rows(Dec_2020, Jan_2021, Feb_2021) #as q1
+Spring <- bind_rows(Mar_2021,Apr_2021, May_2021)  #as q2
+   
+ Summer <- bind_rows(Jun_2021, Jul_2021, Aug_2021) #as q3
+ 
+ Autumn <- bind_rows(Sep_2021, Oct_2021, Nov_2021) #as q4
+```
+
+```{r}
+str(Winter)
+str(Spring)
+str(Summer)
+str(Autumn)
+```
+```{r}
+all_trips <- bind_rows(Winter, Spring, Summer, Autumn)
+all_trips <- subset(all_trips, select = -c(start_lat, start_lng, end_lat, end_lng))
+colnames(all_trips)
+nrow(all_trips)
+dim(all_trips)
+head(all_trips) #load the first 6 row of the data
+summary(all_trips) #Shows the statistical summary
+
+```
+```{r}
+all_trips <- na.omit(all_trips)
+all_trips <- all_trips %>% filter(all_trips$started_at < all_trips$ended_at)
+all_trips$ride_length <- all_trips$ended_at - all_trips$started_at
+all_trips$ride_length <- hms::hms(seconds_to_period(all_trips$ride_length))
+all_trips <- mutate(all_trips, ride_length = as.numeric(ride_length))
+all_trips$day_of_week <- wday(all_trips$started_at, label = TRUE)
+
+```
+# Analyze
+```{r}
+mean(all_trips$ride_length)
+```
+```{r}
+quantile(all_trips$ride_length, .25)
+quantile(all_trips$ride_length, .50)
+quantile(all_trips$ride_length, .75)
+```
+```{r}
+max(all_trips$ride_length)
+min(all_trips$ride_length)
+sd(all_trips$ride_length) 
+```
+```{r}
+summary(all_trips$ride_length)
+```
+```{r}
+aggregate(all_trips$ride_length ~ all_trips$member_casual, FUN = mean)
+```
+```{r}
+aggregate(all_trips$ride_length ~ all_trips$member_casual, FUN = median)
+```
+```{r}
+aggregate(all_trips$ride_length ~ all_trips$member_casual, FUN = max)
+```
+```{r}
+aggregate(all_trips$ride_length ~ all_trips$member_casual, FUN = min)
+```
+```{r}
+aggregate(all_trips$ride_length ~ all_trips$member_casual + all_trips$day_of_week, FUN = mean)
+```
+```{r}
+all_trips %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>%  #weekday field
+  group_by(member_casual, weekday) %>%                  #group by usertype and weekday
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length)) %>%  #average duration
+  arrange(member_casual, weekday)  %>% 
+   ggplot(aes(x = weekday, y = number_of_rides, fill = member_casual)) +
+  geom_col(position = "dodge")
+```
+```{r}
+all_trips %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length)) %>% 
+  arrange(member_casual, weekday)  %>% 
+  ggplot(aes(x = weekday, y = average_duration, fill = member_casual)) +
+  geom_col(position = "dodge")
+```
+```{r}
+all_trips %>% 
+  group_by(day_of_week) %>%
+  summarise(count = length(ride_id),
+            '%' = (length(ride_id) / nrow(all_trips)) * 100,
+            'member' = (sum(member_casual == "member") / length(ride_id)) * 100,
+            'casual' = (sum(member_casual == "casual") / length(ride_id)) * 100,
+            'Member x Casual Perc Diferrent' = member - casual)
+```
+```{r}
+ggplot(all_trips, aes(day_of_week, fill=member_casual)) + 
+  geom_bar() +
+  labs(x="Weekday", title = "Distibution by weekday")  
+```
+```{r}
+all_trips %>% 
+  group_by(rideable_type) %>%
+  summarise(count = length(ride_id),
+            '%' = (length(ride_id) / nrow(all_trips)) * 100,
+            'member' = (sum(member_casual == "member") / length(ride_id)) * 100,
+            'casual' = (sum(member_casual == "casual") / length(ride_id)) * 100,
+            'Member x Casual Perc Diferrent' = member - casual)
+```
+```{r}
+ggplot(all_trips, aes(rideable_type, fill=member_casual)) + 
+  geom_bar() +
+  labs(x="Riderable type", title = "Distibution by type of bikes") 
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
